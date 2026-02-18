@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import com.course.central.proto.hello.Hello.SayHelloRequest;
 import com.course.central.proto.hello.Hello.SayHelloResponse;
-import com.course.grpcserver.service.HelloService;
 import com.course.central.proto.hello.HelloServiceGrpc;
+import com.course.grpcserver.service.HelloService;
 
 import io.grpc.stub.StreamObserver;
 
@@ -21,16 +21,15 @@ public class HelloServiceGrpcServer extends HelloServiceGrpc.HelloServiceImplBas
 
     @Override
     public void sayHello(SayHelloRequest request, StreamObserver<SayHelloResponse> responseObserver) {
-        // TODO: Retrieve the name from the request and generate the message using the helloService
-        // var name = request....
-        // var message = helloService.generateHello(name);
+        var name = request.getName();
+        var message = helloService.generateHello(name);
 
         var response = SayHelloResponse.newBuilder()
-                // TODO: Set the generated message in the response
+                .setGreet(message)
                 .build();
 
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
-    
+
 }
