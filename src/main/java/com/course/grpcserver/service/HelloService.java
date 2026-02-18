@@ -1,6 +1,6 @@
-package com.course.grpcserver.logic;
+package com.course.grpcserver.service;
 
-public interface HelloLogic {
+public interface HelloService {
 
     String generateHello(String name);
 
