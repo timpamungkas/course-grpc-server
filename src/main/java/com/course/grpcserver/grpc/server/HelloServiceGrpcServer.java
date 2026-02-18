@@ -11,11 +11,11 @@ import com.course.central.proto.hello.HelloServiceGrpc;
 import io.grpc.stub.StreamObserver;
 
 @Service
-public class HelloServiceGrpcController extends HelloServiceGrpc.HelloServiceImplBase {
+public class HelloServiceGrpcServer extends HelloServiceGrpc.HelloServiceImplBase {
 
     private HelloService helloService;
 
-    public HelloServiceGrpcController(@Autowired HelloService helloService) {
+    public HelloServiceGrpcServer(@Autowired HelloService helloService) {
         this.helloService = helloService;
     }
 
