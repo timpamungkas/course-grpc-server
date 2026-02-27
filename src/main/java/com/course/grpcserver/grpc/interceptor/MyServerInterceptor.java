@@ -28,7 +28,7 @@ public class MyServerInterceptor implements ServerInterceptor {
         var newContext = Context.current()
                 .withValue(GrpcContextKeyConstants.CONTEXT_KEY_GAMMA, gammaMetadata);
 
-        ServerCall<ReqT, RespT> wrappedCall = new ForwardingServerCall.SimpleForwardingServerCall<>(call) {
+        var wrappedCall = new ForwardingServerCall.SimpleForwardingServerCall<>(call) {
             @Override
             public void sendHeaders(Metadata responseHeaders) {
                 responseHeaders.merge(gammaMetadata);
