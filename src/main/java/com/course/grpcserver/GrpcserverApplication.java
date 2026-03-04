@@ -32,8 +32,7 @@ public class GrpcserverApplication implements CommandLineRunner {
 
 		var randomName = "Carter Hall " + ThreadLocalRandom.current().nextInt(1000);
 
-		var greet = clientHelloService.sayHello(randomName);
-		log.info("Greet: {}", greet);
+		clientHelloService.sayServerStreamingHello(randomName);
 	}
 
 }

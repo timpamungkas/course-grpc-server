@@ -2,8 +2,6 @@ package com.course.grpcserver.grpc.server;
 
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,8 +14,6 @@ import io.grpc.stub.StreamObserver;
 
 @Service
 public class HelloServiceGrpcServer extends HelloServiceGrpc.HelloServiceImplBase {
-
-    private static final Logger log = LoggerFactory.getLogger(HelloServiceGrpcServer.class);
 
     private HelloService helloService;
 
@@ -56,7 +52,6 @@ public class HelloServiceGrpcServer extends HelloServiceGrpc.HelloServiceImplBas
 
             responseObserver.onCompleted();
         } catch (Exception e) {
-            log.error("[sayManyHellos] error occurred", e);
             responseObserver.onError(e);
         }
     }
