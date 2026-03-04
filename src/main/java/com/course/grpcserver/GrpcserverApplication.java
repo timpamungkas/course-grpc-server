@@ -1,6 +1,6 @@
 package com.course.grpcserver;
 
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +30,8 @@ public class GrpcserverApplication implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		TimeUnit.SECONDS.sleep(5);
 
-		var randomName = "Carter Hall " + ThreadLocalRandom.current().nextInt(1000);
-
-		clientHelloService.sayServerStreamingHello(randomName);
+		var response = clientHelloService.sayClientStreamingHello(List.of("Bruce Wayne", "Dick Grayson", "Tim Drake"));
+		log.info("Response: {}", response.getGreet());
 	}
 
 }

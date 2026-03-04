@@ -14,4 +14,9 @@ public class GrpcClientConfig {
         return HelloServiceGrpc.newBlockingV2Stub(cf.createChannel("default-channel"));
     }
 
+    @Bean
+    HelloServiceGrpc.HelloServiceStub helloServiceAsyncStub(GrpcChannelFactory cf) {
+        return HelloServiceGrpc.newStub(cf.createChannel("default-channel"));
+    }
+
 }
