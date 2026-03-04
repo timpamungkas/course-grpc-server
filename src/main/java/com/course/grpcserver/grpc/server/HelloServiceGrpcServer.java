@@ -1,5 +1,7 @@
 package com.course.grpcserver.grpc.server;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +56,37 @@ public class HelloServiceGrpcServer extends HelloServiceGrpc.HelloServiceImplBas
         } catch (Exception e) {
             responseObserver.onError(e);
         }
+    }
+
+    @Override
+    public StreamObserver<SayHelloRequest> sayHelloToEveryone(StreamObserver<SayHelloResponse> responseObserver) {
+        List<String> names = new ArrayList<>();
+
+        return new StreamObserver<SayHelloRequest>() {
+
+            @Override
+            public void onNext(SayHelloRequest request) {
+                names.add(request.getName());
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                responseObserver.onError(t);
+            }
+
+            @Override
+            public void onCompleted() {
+                var mergedNames = String.join(", ", names);
+                var message = helloService.generateHello(mergedNames);
+
+                var response = SayHelloResponse.newBuilder()
+                        .setGreet(message)
+                        .build();
+
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+            }
+        };
     }
 
 }
