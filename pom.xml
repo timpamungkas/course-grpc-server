@@ -61,7 +61,7 @@
 		<dependency>
 			<groupId>com.course</groupId>
 			<artifactId>course-proto-central</artifactId>
-			<version>14a52d6c85a6a510854f84130616be6a2e615f5f</version>
+			<version>2ca972ea0c7cad70087df4f4e13d155f27db83b3</version>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>
