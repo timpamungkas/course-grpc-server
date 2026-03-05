@@ -59,11 +59,11 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- <dependency>
+		<dependency>
 			<groupId>com.course</groupId>
 			<artifactId>course-proto-central</artifactId>
-			<version>2ca972ea0c7cad70087df4f4e13d155f27db83b3</version>
-		</dependency> -->
+			<version>7e484a06d3c11ab14ed8e47c6c6d170fad73ef18</version>
+		</dependency>
 
 		<!-- Armeria gRPC Gateway: exposes gRPC services as REST/JSON -->
 		<dependency>
@@ -142,10 +142,10 @@
 		</plugins>
 	</build>
 
-  	<!-- <repositories>
+  	<repositories>
     	<repository>
       		<id>github</id>
       		<url>https://maven.pkg.github.com/timpamungkas/course-proto-central</url>
     	</repository>
-  	</repositories> -->
+  	</repositories>
 </project>
