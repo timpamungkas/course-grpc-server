@@ -31,6 +31,7 @@
 		<grpc.version>1.77.1</grpc.version>
 		<protobuf-java.version>4.33.4</protobuf-java.version>
 		<spring-grpc.version>1.0.2</spring-grpc.version>
+		<armeria.version>1.32.5</armeria.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -62,6 +63,18 @@
 			<groupId>com.course</groupId>
 			<artifactId>course-proto-central</artifactId>
 			<version>2ca972ea0c7cad70087df4f4e13d155f27db83b3</version>
+		</dependency>
+
+		<!-- Armeria gRPC Gateway: exposes gRPC services as REST/JSON -->
+		<dependency>
+			<groupId>com.linecorp.armeria</groupId>
+			<artifactId>armeria-spring-boot3-autoconfigure</artifactId>
+			<version>${armeria.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.linecorp.armeria</groupId>
+			<artifactId>armeria-grpc</artifactId>
+			<version>${armeria.version}</version>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>
