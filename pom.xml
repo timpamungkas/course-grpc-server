@@ -27,7 +27,7 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>25</java.version>
+		<java.version>21</java.version>
 		<grpc.version>1.77.1</grpc.version>
 		<protobuf-java.version>4.33.4</protobuf-java.version>
 		<spring-grpc.version>1.0.2</spring-grpc.version>
@@ -59,11 +59,11 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
+		<!-- <dependency>
 			<groupId>com.course</groupId>
 			<artifactId>course-proto-central</artifactId>
 			<version>2ca972ea0c7cad70087df4f4e13d155f27db83b3</version>
-		</dependency>
+		</dependency> -->
 
 		<!-- Armeria gRPC Gateway: exposes gRPC services as REST/JSON -->
 		<dependency>
@@ -142,10 +142,10 @@
 		</plugins>
 	</build>
 
-  	<repositories>
+  	<!-- <repositories>
     	<repository>
       		<id>github</id>
       		<url>https://maven.pkg.github.com/timpamungkas/course-proto-central</url>
     	</repository>
-  	</repositories>
+  	</repositories> -->
 </project>

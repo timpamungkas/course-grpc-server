@@ -14,9 +14,10 @@ import com.linecorp.armeria.spring.ArmeriaServerConfigurator;
  * {@code POST /<package>.<ServiceName>/<MethodName>}
  * with Content-Type {@code application/json; charset=utf-8}.
  *
- * <p>Example:
+ * <p>Examples:
  * <pre>
- *   POST http://localhost:8080/hello.v1.HelloService/SayHello
+ *   POST http://localhost:8080/hello.v1.HelloService/SayHello   (unframed gRPC)
+ *   POST http://localhost:8080/hello/v1/say_hello               (HTTP/JSON transcoded)
  *   Content-Type: application/json
  *
  *   {"name": "World"}
@@ -38,16 +39,20 @@ public class ArmeriaConfig {
      */
     @Bean
     public ArmeriaServerConfigurator armeriaServerConfigurator(HelloServiceGrpcServer helloServiceGrpcServer) {
-        return builder -> builder.service(
-                GrpcService.builder()
-                        .addService(helloServiceGrpcServer)
-                        // Enables plain HTTP POST access (no gRPC framing).
-                        // Unary methods become REST-like endpoints accepting JSON or binary protobuf.
-                        .enableUnframedRequests(true)
-                        // Run service methods in a blocking executor (safe for sync implementations).
-                        .useBlockingTaskExecutor(true)
-                        .build()
-        );
+        return builder -> {
+            var grpcService = GrpcService.builder()
+                    .addService(helloServiceGrpcServer)
+                    // Enables plain HTTP POST access (no gRPC framing).
+                    // Unary methods become REST-like endpoints accepting JSON or binary protobuf.
+                    .enableUnframedRequests(true)
+                    // Run service methods in a blocking executor (safe for sync implementations).
+                    .useBlockingTaskExecutor(true)
+                    .enableHttpJsonTranscoding(true)
+                    .build();
+
+            // Register the gRPC service (native gRPC + unframed JSON via /package.Service/Method).
+            builder.service(grpcService);
+        };
     }
 
 }
