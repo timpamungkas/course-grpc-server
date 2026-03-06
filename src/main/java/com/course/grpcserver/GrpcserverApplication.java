@@ -30,11 +30,8 @@ public class GrpcserverApplication implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		TimeUnit.SECONDS.sleep(5);
 
-		var response = clientHelloService.sayClientStreamingHello(List.of("Bruce Wayne", "Dick Grayson", "Tim Drake"));
-
-		if (response != null) {
-			log.info("Response: {}", response.getGreet());
-		}
+		clientHelloService.sayBidirectionalStreamingHello(
+				List.of("Harvey Dent", "Oswald Cobblepot", "Edward Nygma"));
 	}
 
 }

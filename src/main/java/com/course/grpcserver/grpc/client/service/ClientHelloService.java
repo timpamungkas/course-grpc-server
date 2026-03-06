@@ -12,4 +12,6 @@ public interface ClientHelloService {
 
     public SayHelloResponse sayClientStreamingHello(List<String> names) throws Exception;
 
+    public void sayBidirectionalStreamingHello(List<String> names) throws Exception;
+
 }

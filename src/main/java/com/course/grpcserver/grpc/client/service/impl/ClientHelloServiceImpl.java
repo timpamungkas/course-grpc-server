@@ -94,4 +94,34 @@ public class ClientHelloServiceImpl implements ClientHelloService {
         return responseHolder.get();
     }
 
+    @Override
+    public void sayBidirectionalStreamingHello(List<String> names) throws Exception {
+        StreamObserver<SayHelloRequest> requestObserver = helloServiceAsyncStub.sayHelloContinuous(
+                new StreamObserver<>() {
+
+                    @Override
+                    public void onNext(SayHelloResponse response) {
+                        log.info(response.getGreet());
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        log.error("[sayHelloContinuous] error occurred", t);
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        log.info("[sayHelloContinuous] stream completed");
+                    }
+                });
+
+        for (var name : names) {
+            var request = SayHelloRequest.newBuilder().setName(name).build();
+            requestObserver.onNext(request);
+            TimeUnit.MILLISECONDS.sleep(500);
+        }
+
+        requestObserver.onCompleted();
+    }
+
 }
