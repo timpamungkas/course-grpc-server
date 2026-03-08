@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package bank.v1;
+
+import "bank/v1/account_message.proto";
+
+option java_package = "com.course.central.proto.bank";
+
+service BankService {
+  rpc GetCurrentBalance (GetCurrentBalanceRequest) returns (GetCurrentBalanceResponse) {}
+}

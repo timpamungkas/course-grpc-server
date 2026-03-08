@@ -61,12 +61,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.course</groupId>
-			<artifactId>course-proto-central</artifactId>
-			<version>d2f0b10e58d22014c623047c49607ddcfe9073e7</version>
-		</dependency>
-
-		<dependency>
 			<groupId>com.linecorp.armeria</groupId>
 			<artifactId>armeria-spring-boot4-autoconfigure</artifactId>
 			<version>${armeria.version}</version>
@@ -142,10 +136,4 @@
 		</plugins>
 	</build>
 
-	<repositories>
-		<repository>
-			<id>github</id>
-			<url>https://maven.pkg.github.com/timpamungkas/course-proto-central</url>
-		</repository>
-	</repositories>
 </project>
