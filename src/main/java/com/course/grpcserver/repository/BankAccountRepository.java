@@ -8,4 +8,6 @@ import com.course.grpcserver.entity.BankAccount;
 
 public interface BankAccountRepository extends ListCrudRepository<BankAccount, UUID> {
 
+    BankAccount findByAccountNumber(String accountNumber);
+
 }
