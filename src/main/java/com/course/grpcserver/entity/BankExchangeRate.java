@@ -5,13 +5,21 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Table;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
+@Builder
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Table("bank_exchange_rates")
-public class BankExchangeRate {
+public class BankExchangeRate implements Persistable<UUID> {
 
     @Id
     private UUID exchangeRateUuid;
@@ -29,5 +37,19 @@ public class BankExchangeRate {
     private OffsetDateTime createdAt;
 
     private OffsetDateTime updatedAt;
+
+    @Transient
+    @Builder.Default
+    private boolean isNew = true;
+
+    @Override
+    public UUID getId() {
+        return exchangeRateUuid;
+    }
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
 
 }

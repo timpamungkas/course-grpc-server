@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package bank.v1;
+
+option java_package = "com.course.central.proto.bank";
+
+message FetchExchangeRateRequest {
+  string from_currency = 1 [json_name = "from_currency"];
+  string to_currency = 2 [json_name = "to_currency"];
+}
+
+message FetchExchangeRateResponse {
+  string from_currency = 1 [json_name = "from_currency"];
+  string to_currency = 2 [json_name = "to_currency"];
+  double rate = 3;
+  string timestamp = 4;
+}
