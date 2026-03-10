@@ -66,7 +66,7 @@ public class BankServiceImpl implements BankService {
 
     @Override
     @Transactional
-    public void createTransaction(String accountNumber, TransactionType type, double amount) {
+    public void createTransaction(String accountNumber, TransactionType type, double amount, String notes) {
         var account = bankAccountRepository.findByAccountNumber(accountNumber);
         if (account == null) {
             throw new IllegalArgumentException("Account not found: " + accountNumber);
@@ -81,6 +81,7 @@ public class BankServiceImpl implements BankService {
                 .transactionType(type.name())
                 .createdAt(now)
                 .updatedAt(now)
+                .notes(notes)
                 .build();
 
         bankTransactionRepository.save(transaction);

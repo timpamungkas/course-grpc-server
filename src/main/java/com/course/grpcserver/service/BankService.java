@@ -14,6 +14,6 @@ public interface BankService {
 
     double findExchangeRateAtTimeStamp(String fromCurrency, String toCurrency, OffsetDateTime timestamp);
 
-    void createTransaction(String accountNumber, TransactionType type, double amount);
+    void createTransaction(String accountNumber, TransactionType type, double amount, String notes);
 
 }

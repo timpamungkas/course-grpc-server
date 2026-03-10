@@ -102,9 +102,10 @@ public class BankServiceGrpcServer extends BankServiceGrpc.BankServiceImplBase {
                 accountNumber = request.getAccountNumber();
                 var type = request.getType();
                 var amount = request.getAmount();
+                var notes = request.getNotes();
 
                 try {
-                    bankService.createTransaction(accountNumber, type, amount);
+                    bankService.createTransaction(accountNumber, type, amount, notes);
                 } catch (Exception e) {
                     log.error("Failed to create transaction: {}", e.getMessage());
                 }
