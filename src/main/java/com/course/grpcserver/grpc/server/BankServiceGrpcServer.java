@@ -17,8 +17,13 @@ import com.course.central.proto.bank.ExchangeRateMessage.FetchExchangeRateRespon
 import com.course.central.proto.bank.TransactionMessage.TransactionRequest;
 import com.course.central.proto.bank.TransactionMessage.TransactionSummaryResponse;
 import com.course.central.proto.bank.TransactionMessage.TransactionType;
+import com.course.central.proto.bank.TransferMessage.TransferRequest;
+import com.course.central.proto.bank.TransferMessage.TransferResponse;
+import com.course.central.proto.bank.TransferMessage.TransferStatus;
 import com.course.grpcserver.service.BankService;
+import com.google.protobuf.Duration;
 import com.google.type.Date;
+import com.google.type.DateTime;
 
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
@@ -144,6 +149,83 @@ public class BankServiceGrpcServer extends BankServiceGrpc.BankServiceImplBase {
                 responseObserver.onCompleted();
             }
         };
+    }
+
+    @Override
+    public StreamObserver<TransferRequest> transferMultiple(StreamObserver<TransferResponse> responseObserver) {
+        var serverCallObserver = (ServerCallStreamObserver<TransferResponse>) responseObserver;
+
+        return new StreamObserver<TransferRequest>() {
+
+            @Override
+            public void onNext(TransferRequest request) {
+                if (serverCallObserver.isCancelled()) {
+                    log.info("Client cancelled the transfer stream");
+                    return;
+                }
+
+                var fromAccountNumber = request.getFromAccountNumber();
+                var toAccountNumber = request.getToAccountNumber();
+                var currency = request.getCurrency();
+                var amount = request.getAmount();
+
+                boolean transferSuccess = false;
+                String transferUuid = null;
+
+                try {
+                    var uuid = bankService.createTransfer(fromAccountNumber, toAccountNumber, currency, amount);
+                    transferUuid = uuid.toString();
+                    bankService.createTransactionPair(fromAccountNumber, toAccountNumber, amount, "Transfer");
+                    transferSuccess = true;
+                } catch (Exception e) {
+                    log.error("Transfer failed: {}", e.getMessage());
+                }
+
+                if (transferUuid != null) {
+                    bankService.updateTransferStatus(transferUuid, transferSuccess);
+                }
+
+                var status = transferSuccess
+                        ? TransferStatus.TRANSFER_STATUS_SUCCESS
+                        : TransferStatus.TRANSFER_STATUS_FAILED;
+
+                var response = TransferResponse.newBuilder()
+                        .setFromAccountNumber(fromAccountNumber)
+                        .setToAccountNumber(toAccountNumber)
+                        .setCurrency(currency)
+                        .setAmount(amount)
+                        .setStatus(status)
+                        .setTimestamp(currentDatetime())
+                        .build();
+
+                responseObserver.onNext(response);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                log.error("Error while reading from client: {}", t.getMessage());
+            }
+
+            @Override
+            public void onCompleted() {
+                responseObserver.onCompleted();
+            }
+        };
+    }
+
+    private DateTime currentDatetime() {
+        var now = OffsetDateTime.now(ZoneOffset.UTC);
+
+        return DateTime.newBuilder()
+                .setYear(now.getYear())
+                .setMonth(now.getMonthValue())
+                .setDay(now.getDayOfMonth())
+                .setHours(now.getHour())
+                .setMinutes(now.getMinute())
+                .setSeconds(now.getSecond())
+                .setNanos(now.getNano())
+                .setUtcOffset(Duration.getDefaultInstance())
+                .build();
     }
 
 }

@@ -5,6 +5,7 @@ package bank.v1;
 import "bank/v1/account_message.proto";
 import "bank/v1/exchange_rate_message.proto";
 import "bank/v1/transaction_message.proto";
+import "bank/v1/transfer_message.proto";
 
 option java_package = "com.course.central.proto.bank";
 
@@ -12,4 +13,5 @@ service BankService {
   rpc GetCurrentBalance(GetCurrentBalanceRequest) returns (GetCurrentBalanceResponse) {}
   rpc FetchExchangeRates(FetchExchangeRateRequest) returns (stream FetchExchangeRateResponse) {}
   rpc SummarizeTransactions(stream TransactionRequest) returns (TransactionSummaryResponse) {}
+  rpc TransferMultiple(stream TransferRequest) returns (stream TransferResponse) {}
 }

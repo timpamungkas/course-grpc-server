@@ -11,9 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.course.central.proto.bank.TransactionMessage.TransactionType;
 import com.course.grpcserver.entity.BankExchangeRate;
 import com.course.grpcserver.entity.BankTransaction;
+import com.course.grpcserver.entity.BankTransfer;
 import com.course.grpcserver.repository.BankAccountRepository;
 import com.course.grpcserver.repository.BankExchangeRateRepository;
 import com.course.grpcserver.repository.BankTransactionRepository;
+import com.course.grpcserver.repository.BankTransferRepository;
 import com.course.grpcserver.service.BankService;
 
 @Service
@@ -22,13 +24,16 @@ public class BankServiceImpl implements BankService {
     private BankAccountRepository bankAccountRepository;
     private BankExchangeRateRepository bankExchangeRateRepository;
     private BankTransactionRepository bankTransactionRepository;
+    private BankTransferRepository bankTransferRepository;
 
     public BankServiceImpl(@Autowired BankAccountRepository bankAccountRepository,
             @Autowired BankExchangeRateRepository bankExchangeRateRepository,
-            @Autowired BankTransactionRepository bankTransactionRepository) {
+            @Autowired BankTransactionRepository bankTransactionRepository,
+            @Autowired BankTransferRepository bankTransferRepository) {
         this.bankAccountRepository = bankAccountRepository;
         this.bankExchangeRateRepository = bankExchangeRateRepository;
         this.bankTransactionRepository = bankTransactionRepository;
+        this.bankTransferRepository = bankTransferRepository;
     }
 
     @Override
@@ -97,6 +102,91 @@ public class BankServiceImpl implements BankService {
         if (updatedRows != 1) {
             throw new IllegalStateException("Failed to update balance for account: " + accountNumber);
         }
+    }
+
+    @Override
+    public UUID createTransfer(String fromAccountNumber, String toAccountNumber, String currency, double amount) {
+        var fromAccount = bankAccountRepository.findByAccountNumber(fromAccountNumber);
+        if (fromAccount == null) {
+            throw new IllegalArgumentException("From account not found: " + fromAccountNumber);
+        }
+        var toAccount = bankAccountRepository.findByAccountNumber(toAccountNumber);
+        if (toAccount == null) {
+            throw new IllegalArgumentException("To account not found: " + toAccountNumber);
+        }
+
+        var now = OffsetDateTime.now();
+        var transfer = BankTransfer.builder()
+                .transferUuid(UUID.randomUUID())
+                .fromAccountUuid(fromAccount.getAccountUuid())
+                .toAccountUuid(toAccount.getAccountUuid())
+                .currency(currency)
+                .amount(new BigDecimal(amount))
+                .transferTimestamp(now)
+                .transferSuccess(false)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
+
+        return bankTransferRepository.save(transfer).getTransferUuid();
+    }
+
+    @Override
+    @Transactional
+    public void createTransactionPair(String fromAccountNumber, String toAccountNumber, double amount, String notes) {
+        var fromAccount = bankAccountRepository.findByAccountNumber(fromAccountNumber);
+        if (fromAccount == null) {
+            throw new IllegalArgumentException("From account not found: " + fromAccountNumber);
+        }
+
+        var toAccount = bankAccountRepository.findByAccountNumber(toAccountNumber);
+        if (toAccount == null) {
+            throw new IllegalArgumentException("To account not found: " + toAccountNumber);
+        }
+
+        var now = OffsetDateTime.now();
+        var amountDecimal = new BigDecimal(amount);
+
+        var fromTransaction = BankTransaction.builder()
+                .transactionUuid(UUID.randomUUID())
+                .accountUuid(fromAccount.getAccountUuid())
+                .transactionTimestamp(now)
+                .amount(amountDecimal)
+                .transactionType(TransactionType.TRANSACTION_TYPE_OUT.name())
+                .notes(notes)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
+        bankTransactionRepository.save(fromTransaction);
+
+        var toTransaction = BankTransaction.builder()
+                .transactionUuid(UUID.randomUUID())
+                .accountUuid(toAccount.getAccountUuid())
+                .transactionTimestamp(now)
+                .amount(amountDecimal)
+                .transactionType(TransactionType.TRANSACTION_TYPE_IN.name())
+                .notes(notes)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
+        bankTransactionRepository.save(toTransaction);
+
+        var fromNewBalance = fromAccount.getCurrentBalance().subtract(amountDecimal);
+        var updatedFromAccountRows = bankAccountRepository.updateCurrentBalance(fromAccount.getAccountUuid(), fromNewBalance);
+        if (updatedFromAccountRows != 1) {
+            throw new IllegalStateException("Failed to update balance for account: " + fromAccountNumber);
+        }
+
+        var toNewBalance = toAccount.getCurrentBalance().add(amountDecimal);
+        var updatedToAccountRows = bankAccountRepository.updateCurrentBalance(toAccount.getAccountUuid(), toNewBalance);
+        if (updatedToAccountRows != 1) {
+            throw new IllegalStateException("Failed to update balance for account: " + toAccountNumber);
+        }
+    }
+
+    @Override
+    public int updateTransferStatus(String transferUuid, boolean isSuccess) {
+        return bankTransferRepository.updateTransferStatus(UUID.fromString(transferUuid), isSuccess);
     }
 
 }
