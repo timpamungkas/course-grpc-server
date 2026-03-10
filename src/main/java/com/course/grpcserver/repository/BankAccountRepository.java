@@ -17,7 +17,8 @@ public interface BankAccountRepository extends ListCrudRepository<BankAccount, U
 
     @Modifying
     @Query("""
-        UPDATE bank_accounts SET current_balance = :balance, updated_at = current_timestamp 
+        UPDATE bank_accounts 
+           SET current_balance = :balance, updated_at = current_timestamp 
          WHERE account_uuid = :id
     """)
     int updateCurrentBalance(@Param("id") UUID id, @Param("balance") BigDecimal balance);
