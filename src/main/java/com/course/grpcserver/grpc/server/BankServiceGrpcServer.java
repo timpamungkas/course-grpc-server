@@ -106,14 +106,14 @@ public class BankServiceGrpcServer extends BankServiceGrpc.BankServiceImplBase {
 
                 try {
                     bankService.createTransaction(accountNumber, type, amount, notes);
+
+                    if (type == TransactionType.TRANSACTION_TYPE_IN) {
+                        sumAmountIn += amount;
+                    } else if (type == TransactionType.TRANSACTION_TYPE_OUT) {
+                        sumAmountOut += amount;
+                    }
                 } catch (Exception e) {
                     log.error("Failed to create transaction: {}", e.getMessage());
-                }
-
-                if (type == TransactionType.TRANSACTION_TYPE_IN) {
-                    sumAmountIn += amount;
-                } else if (type == TransactionType.TRANSACTION_TYPE_OUT) {
-                    sumAmountOut += amount;
                 }
             }
 
