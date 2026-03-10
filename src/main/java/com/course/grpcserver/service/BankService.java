@@ -21,6 +21,6 @@ public interface BankService {
 
     void createTransactionPair(String fromAccountNumber, String toAccountNumber, double amount, String notes);
 
-    int updateTransferStatus(String transferUuid, boolean isSuccess);
+    int updateTransferStatus(UUID transferUuid, boolean isSuccess);
 
 }

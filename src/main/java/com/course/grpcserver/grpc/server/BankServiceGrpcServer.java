@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -169,12 +170,11 @@ public class BankServiceGrpcServer extends BankServiceGrpc.BankServiceImplBase {
                 var currency = request.getCurrency();
                 var amount = request.getAmount();
 
-                boolean transferSuccess = false;
-                String transferUuid = null;
+                UUID transferUuid = null;
+                var transferSuccess = false;
 
                 try {
-                    var uuid = bankService.createTransfer(fromAccountNumber, toAccountNumber, currency, amount);
-                    transferUuid = uuid.toString();
+                    transferUuid = bankService.createTransfer(fromAccountNumber, toAccountNumber, currency, amount);                    
                     bankService.createTransactionPair(fromAccountNumber, toAccountNumber, amount, "Transfer");
                     transferSuccess = true;
                 } catch (Exception e) {

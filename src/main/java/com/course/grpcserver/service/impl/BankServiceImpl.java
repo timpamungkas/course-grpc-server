@@ -185,8 +185,8 @@ public class BankServiceImpl implements BankService {
     }
 
     @Override
-    public int updateTransferStatus(String transferUuid, boolean isSuccess) {
-        return bankTransferRepository.updateTransferStatus(UUID.fromString(transferUuid), isSuccess);
+    public int updateTransferStatus(UUID transferUuid, boolean isSuccess) {
+        return bankTransferRepository.updateTransferStatus(transferUuid, isSuccess);
     }
 
 }
