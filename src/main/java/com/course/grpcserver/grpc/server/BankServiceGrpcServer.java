@@ -91,13 +91,11 @@ public class BankServiceGrpcServer extends BankServiceGrpc.BankServiceImplBase {
     @Override
     public StreamObserver<TransactionRequest> summarizeTransactions(
             StreamObserver<TransactionSummaryResponse> responseObserver) {
-
         return new StreamObserver<TransactionRequest>() {
 
-            private String accountNumber = "";
-            private double sumAmountIn = 0;
-            private double sumAmountOut = 0;
-            private final LocalDate transactionDate = LocalDate.now();
+            private String accountNumber;
+            private double sumAmountIn;
+            private double sumAmountOut;
 
             @Override
             public void onNext(TransactionRequest request) {
@@ -125,10 +123,12 @@ public class BankServiceGrpcServer extends BankServiceGrpc.BankServiceImplBase {
 
             @Override
             public void onCompleted() {
+                var now = LocalDate.now();
+
                 var today = Date.newBuilder()
-                        .setYear(transactionDate.getYear())
-                        .setMonth(transactionDate.getMonthValue())
-                        .setDay(transactionDate.getDayOfMonth())
+                        .setYear(now.getYear())
+                        .setMonth(now.getMonthValue())
+                        .setDay(now.getDayOfMonth())
                         .build();
 
                 var response = TransactionSummaryResponse.newBuilder()
