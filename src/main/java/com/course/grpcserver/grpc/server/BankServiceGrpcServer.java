@@ -22,12 +22,16 @@ import com.course.central.proto.bank.TransferMessage.TransferRequest;
 import com.course.central.proto.bank.TransferMessage.TransferResponse;
 import com.course.central.proto.bank.TransferMessage.TransferStatus;
 import com.course.grpcserver.exception.AccountNotFoundException;
+import com.course.grpcserver.exception.InvalidExchangeRateException;
 import com.course.grpcserver.service.BankService;
+import com.google.protobuf.Any;
 import com.google.protobuf.Duration;
+import com.google.rpc.BadRequest;
 import com.google.type.Date;
 import com.google.type.DateTime;
 
 import io.grpc.Status;
+import io.grpc.protobuf.StatusProto;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
@@ -76,23 +80,38 @@ public class BankServiceGrpcServer extends BankServiceGrpc.BankServiceImplBase {
         var serverCallObserver = (ServerCallStreamObserver<FetchExchangeRateResponse>) responseObserver;
 
         while (!serverCallObserver.isCancelled()) {
-            var now = OffsetDateTime.now(ZoneOffset.UTC);
-            var exchangeRate = bankService.findExchangeRateAtTimeStamp(fromCurrency, toCurrency, now);
-
-            var response = FetchExchangeRateResponse.newBuilder()
-                    .setFromCurrency(fromCurrency)
-                    .setToCurrency(toCurrency)
-                    .setRate(exchangeRate)
-                    .setTimestamp(now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
-                    .build();
-
-            responseObserver.onNext(response);
-
             try {
+                var now = OffsetDateTime.now(ZoneOffset.UTC);
+                var exchangeRate = bankService.findExchangeRateAtTimeStamp(fromCurrency, toCurrency, now);
+
+                var response = FetchExchangeRateResponse.newBuilder()
+                        .setFromCurrency(fromCurrency)
+                        .setToCurrency(toCurrency)
+                        .setRate(exchangeRate)
+                        .setTimestamp(now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                        .build();
+
+                responseObserver.onNext(response);
+
                 TimeUnit.SECONDS.sleep(3);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
+            } catch (InvalidExchangeRateException e) {
+                var badRequest = BadRequest.newBuilder()
+                        .addFieldViolations(BadRequest.FieldViolation.newBuilder()
+                                .setField("exchange_rate")
+                                .setDescription(e.getMessage())
+                                .build())
+                        .build();
+
+                var errorStatus = com.google.rpc.Status.newBuilder()
+                        .setCode(Status.NOT_FOUND.getCode().value())
+                        .setMessage("Exchange rate not found")
+                        .addDetails(Any.pack(badRequest))
+                        .build();
+
+                responseObserver.onError(StatusProto.toStatusRuntimeException(errorStatus));
             }
         }
 

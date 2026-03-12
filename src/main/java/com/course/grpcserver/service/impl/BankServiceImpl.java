@@ -13,6 +13,7 @@ import com.course.grpcserver.entity.BankExchangeRate;
 import com.course.grpcserver.entity.BankTransaction;
 import com.course.grpcserver.entity.BankTransfer;
 import com.course.grpcserver.exception.AccountNotFoundException;
+import com.course.grpcserver.exception.InvalidExchangeRateException;
 import com.course.grpcserver.repository.BankAccountRepository;
 import com.course.grpcserver.repository.BankExchangeRateRepository;
 import com.course.grpcserver.repository.BankTransactionRepository;
@@ -70,8 +71,11 @@ public class BankServiceImpl implements BankService {
     @Override
     public double findExchangeRateAtTimeStamp(String fromCurrency, String toCurrency, OffsetDateTime timestamp) {
         var exchangeRate = bankExchangeRateRepository.findExchangeRateAtTimeStamp(fromCurrency, toCurrency, timestamp);
+        if (exchangeRate == null) {
+            throw new InvalidExchangeRateException(fromCurrency, toCurrency);
+        }
 
-        return exchangeRate != null ? exchangeRate.getRate().doubleValue() : 0.0;
+        return exchangeRate.getRate().doubleValue();
     }
 
     @Override
