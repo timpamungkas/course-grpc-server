@@ -278,6 +278,7 @@ public class BankServiceGrpcServer extends BankServiceGrpc.BankServiceImplBase {
         };
     }
 
+    
     private Throwable buildTransferErrorResponse(Exception e, TransferRequest request) {
         com.google.rpc.Status errorStatus;
 
@@ -346,6 +347,7 @@ public class BankServiceGrpcServer extends BankServiceGrpc.BankServiceImplBase {
 
         return StatusProto.toStatusRuntimeException(errorStatus);
     }
+    
 
     private DateTime currentDatetime() {
         var now = OffsetDateTime.now(ZoneOffset.UTC);
