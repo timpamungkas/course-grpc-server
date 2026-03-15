@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.grpc.client.GrpcChannelFactory;
 
+import com.course.central.proto.bank.BankServiceGrpc;
 import com.course.central.proto.hello.HelloServiceGrpc;
 
 @Configuration
@@ -17,6 +18,16 @@ public class GrpcClientConfig {
     @Bean
     HelloServiceGrpc.HelloServiceStub helloServiceAsyncStub(GrpcChannelFactory cf) {
         return HelloServiceGrpc.newStub(cf.createChannel("default-channel"));
+    }
+
+    @Bean
+    BankServiceGrpc.BankServiceBlockingV2Stub bankServiceBlockingStub(GrpcChannelFactory cf) {
+        return BankServiceGrpc.newBlockingV2Stub(cf.createChannel("default-channel"));
+    }
+
+    @Bean
+    BankServiceGrpc.BankServiceStub bankServiceAsyncStub(GrpcChannelFactory cf) {
+        return BankServiceGrpc.newStub(cf.createChannel("default-channel"));
     }
 
 }

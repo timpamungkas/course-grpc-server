@@ -1,10 +1,23 @@
 package com.course.grpcserver;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import com.course.central.proto.bank.TransactionMessage.TransactionRequest;
+import com.course.central.proto.bank.TransactionMessage.TransactionType;
+import com.course.central.proto.bank.TransferMessage.TransferRequest;
+import com.course.grpcserver.grpc.client.service.ClientBankService;
+
+import io.grpc.Status;
+import io.grpc.StatusException;
+import io.grpc.StatusRuntimeException;
+import io.grpc.protobuf.StatusProto;
 import lombok.extern.slf4j.Slf4j;
 
 @EnableScheduling
@@ -16,8 +29,123 @@ public class GrpcserverApplication implements CommandLineRunner {
 		SpringApplication.run(GrpcserverApplication.class, args);
 	}
 
+	private ClientBankService clientBankService;
+
+	public GrpcserverApplication(@Autowired ClientBankService clientBankService) {
+		this.clientBankService = clientBankService;
+	}
+
 	@Override
 	public void run(String... args) throws Exception {
+		TimeUnit.SECONDS.sleep(5);
+
+		// demoUnaryCall();
+		// demoServerStreamingCall();
+		// demoClientStreamingCall();
+		demoBidirectionalStreamingCall();
+	}
+
+	private void printExceptionStatus(String caller, Throwable e) {
+		var status = Status.fromThrowable(e);
+		log.error("{} catch {}: {}", caller, e.getClass().getSimpleName(), status);
+
+		var statusDetail = StatusProto.fromThrowable(e);
+		if (statusDetail != null) {
+			log.error("{} statusDetail: status code={}, message={}", caller, statusDetail.getCode(),
+					statusDetail.getMessage());
+			statusDetail.getDetailsList()
+					.forEach(
+							detail -> log.error("  - {} error detail type={}, value={}",
+									caller, detail.getTypeUrl(), detail));
+		}
+	}
+
+	private void demoUnaryCall() {
+		try {
+			var getCurrentBalanceResponse = clientBankService.callGetCurrentBalance("11111111xx");
+			log.info("getCurrentBalanceResponse success with amount {}", getCurrentBalanceResponse.getAmount());
+		} catch (StatusException | StatusRuntimeException e) {
+			printExceptionStatus("callGetCurrentBalance", e);
+		} catch (Exception e) {
+			log.error("callGetCurrentBalance catch other exception", e);
+		}
+	}
+
+	private void demoServerStreamingCall() {
+		try {
+			clientBankService.callFetchExchangeRates("USD", "INVALID");
+		} catch (StatusException | StatusRuntimeException e) {
+			printExceptionStatus("callFetchExchangeRates", e);
+		} catch (Exception e) {
+			log.error("callFetchExchangeRates catch other exception", e);
+		}
+	}
+
+	private void demoClientStreamingCall() {
+		try {
+			var depositTransactionRequest = TransactionRequest.newBuilder()
+					.setAccountNumber("11111111")
+					.setType(TransactionType.TRANSACTION_TYPE_IN)
+					.setAmount(100.0)
+					.setNotes("Deposit")
+					.build();
+
+			var accountNotFoundTransactionRequest = TransactionRequest.newBuilder()
+					.setAccountNumber("INVALID_ACCOUNT")
+					.setType(TransactionType.TRANSACTION_TYPE_IN)
+					.setAmount(50.0)
+					.setNotes("Deposit")
+					.build();
+
+			var insufficientFundTransactionRequest = TransactionRequest.newBuilder()
+					.setAccountNumber("11111111")
+					.setType(TransactionType.TRANSACTION_TYPE_OUT)
+					.setAmount(9000000)
+					.setNotes("Withdrawal")
+					.build();
+
+			var requests = List.of(
+					depositTransactionRequest,
+					accountNotFoundTransactionRequest,
+					insufficientFundTransactionRequest);
+
+			var response = clientBankService.callSummarizeTransactions(requests);
+			log.info("callSummarizeTransactions success: account={}, in={}, out={}, total={}",
+					response.getAccountNumber(), response.getSumAmountIn(),
+					response.getSumAmountOut(), response.getSumTotal());
+		} catch (StatusException | StatusRuntimeException e) {
+			printExceptionStatus("callSummarizeTransactions", e);
+		} catch (Exception e) {
+			log.error("callSummarizeTransactions catch other exception", e);
+		}
+	}
+
+	private void demoBidirectionalStreamingCall() {
+		try {
+			var transferFromInvalidSourceRequest = TransferRequest.newBuilder()
+					.setFromAccountNumber("INVALID_SRC") 
+					.setToAccountNumber("22222222")
+					.setCurrency("USD")
+					.setAmount(3)
+					.build();
+
+			var transferToInvalidDestinationRequest = TransferRequest.newBuilder()
+					.setFromAccountNumber("11111111")
+					.setToAccountNumber("INVALID_DEST")
+					.setCurrency("USD")
+					.setAmount(3)
+					.build();
+
+			var requests = List.of(
+					transferFromInvalidSourceRequest,
+					transferToInvalidDestinationRequest);
+
+			clientBankService.callTransferMultiple(requests);
+		} catch (StatusException | StatusRuntimeException e) {
+			printExceptionStatus("callTransferMultiple", e);
+		} catch (Exception e) {
+			log.error("callTransferMultiple catch other exception", e);
+		}
 	}
 
 }
