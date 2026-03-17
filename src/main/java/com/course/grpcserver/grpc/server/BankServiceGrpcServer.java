@@ -232,6 +232,8 @@ public class BankServiceGrpcServer extends BankServiceGrpc.BankServiceImplBase {
 
         return new StreamObserver<TransferRequest>() {
 
+            private boolean hasError = false;
+
             @Override
             public void onNext(TransferRequest request) {
                 if (serverCallObserver.isCancelled()) {
@@ -266,6 +268,7 @@ public class BankServiceGrpcServer extends BankServiceGrpc.BankServiceImplBase {
                         bankService.updateTransferStatus(transferUuid, false);
                     }
 
+                    hasError = true;
                     var errorResponse = buildTransferErrorResponse(e, request);
                     responseObserver.onError(errorResponse);
                 }
@@ -278,7 +281,9 @@ public class BankServiceGrpcServer extends BankServiceGrpc.BankServiceImplBase {
 
             @Override
             public void onCompleted() {
-                responseObserver.onCompleted();
+                if (!hasError) {
+                    responseObserver.onCompleted();
+                }
             }
         };
     }
