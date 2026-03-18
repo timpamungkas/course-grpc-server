@@ -249,7 +249,7 @@ public class BankServiceImpl implements BankService {
                 .transactionTimestamp(now)
                 .amount(amountDecimal)
                 .transactionType(TransactionType.TRANSACTION_TYPE_OUT.name())
-                .notes(String.format("Bill payment to %s with currency %s", billerCode, currency))
+                .notes("Bill payment to " + billerCode + " with currency " + currency)
                 .createdAt(now)
                 .updatedAt(now)
                 .build());

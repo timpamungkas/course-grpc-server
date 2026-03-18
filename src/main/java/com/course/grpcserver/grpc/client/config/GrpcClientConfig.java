@@ -6,6 +6,7 @@ import org.springframework.grpc.client.GrpcChannelFactory;
 
 import com.course.central.proto.bank.BankServiceGrpc;
 import com.course.central.proto.hello.HelloServiceGrpc;
+import com.course.central.proto.resiliency.ResiliencyServiceGrpc;
 
 @Configuration
 public class GrpcClientConfig {
@@ -28,6 +29,16 @@ public class GrpcClientConfig {
     @Bean
     BankServiceGrpc.BankServiceStub bankServiceAsyncStub(GrpcChannelFactory cf) {
         return BankServiceGrpc.newStub(cf.createChannel("default-channel"));
+    }
+
+    @Bean
+    ResiliencyServiceGrpc.ResiliencyServiceBlockingV2Stub resiliencyServiceBlockingStub(GrpcChannelFactory cf) {
+        return ResiliencyServiceGrpc.newBlockingV2Stub(cf.createChannel("default-channel"));
+    }
+
+    @Bean
+    ResiliencyServiceGrpc.ResiliencyServiceStub resiliencyServiceAsyncStub(GrpcChannelFactory cf) {
+        return ResiliencyServiceGrpc.newStub(cf.createChannel("default-channel"));
     }
 
 }

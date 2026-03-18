@@ -12,7 +12,6 @@ import com.course.central.proto.bank.AccountMessage.GetCurrentBalanceRequest;
 import com.course.central.proto.bank.AccountMessage.GetCurrentBalanceResponse;
 import com.course.central.proto.bank.BankServiceGrpc;
 import com.course.central.proto.bank.ExchangeRateMessage.FetchExchangeRateRequest;
-import com.course.central.proto.bank.ExchangeRateMessage.FetchExchangeRateResponse;
 import com.course.central.proto.bank.TransactionMessage.TransactionRequest;
 import com.course.central.proto.bank.TransactionMessage.TransactionSummaryResponse;
 import com.course.central.proto.bank.TransferMessage.TransferRequest;
