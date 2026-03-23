@@ -53,7 +53,8 @@ public class ClientResiliencyServiceImpl implements ClientResiliencyService {
         var responseStream = stub.serverStreamingResiliency(request);
 
         while (responseStream.hasNext()) {
-            responseStream.read();
+            var response = responseStream.read();
+            log.info("[callServerStreamingResiliency] received a response: {}", response.getDummyString());
         }
     }
 
@@ -95,7 +96,11 @@ public class ClientResiliencyServiceImpl implements ClientResiliencyService {
         }
 
         requestObserver.onCompleted();
-        latch.await(10, TimeUnit.SECONDS);
+
+        var latchAwaitTime = timeout == null ? Duration.ofMinutes(2) : timeout.plusSeconds(3);
+        latch.await(latchAwaitTime.toSeconds(), TimeUnit.SECONDS);
+
+        boolean completed = latch.await(latchAwaitTime.toSeconds(), TimeUnit.SECONDS);
 
         var error = errorHolder.get();
         if (error != null) {
@@ -103,6 +108,10 @@ public class ClientResiliencyServiceImpl implements ClientResiliencyService {
                 throw ex;
             }
             throw new RuntimeException(error);
+        }
+
+        if (!completed) {
+            throw new RuntimeException("Timed out waiting for client streaming response");
         }
 
         var response = responseHolder.get();
@@ -148,7 +157,9 @@ public class ClientResiliencyServiceImpl implements ClientResiliencyService {
         }
 
         requestObserver.onCompleted();
-        latch.await(10, TimeUnit.SECONDS);
+
+        var latchAwaitTime = timeout == null ? Duration.ofMinutes(2) : timeout.plusSeconds(3);
+        boolean completed = latch.await(latchAwaitTime.toSeconds(), TimeUnit.SECONDS);
 
         var error = errorHolder.get();
         if (error != null) {
@@ -156,6 +167,10 @@ public class ClientResiliencyServiceImpl implements ClientResiliencyService {
                 throw ex;
             }
             throw new RuntimeException(error);
+        }
+
+        if (!completed) {
+            throw new RuntimeException("Timed out waiting for bidirectional streaming response");
         }
     }
 

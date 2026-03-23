@@ -1,7 +1,7 @@
 package com.course.grpcserver;
 
+import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -9,10 +9,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import com.course.central.proto.bank.TransactionMessage.TransactionRequest;
-import com.course.central.proto.bank.TransactionMessage.TransactionType;
-import com.course.central.proto.bank.TransferMessage.TransferRequest;
-import com.course.grpcserver.grpc.client.service.ClientBankService;
+import com.course.central.proto.resiliency.ResiliencyMessage.ResiliencyRequest;
+import com.course.grpcserver.grpc.client.service.ClientResiliencyService;
 
 import io.grpc.Status;
 import io.grpc.StatusException;
@@ -29,20 +27,10 @@ public class GrpcserverApplication implements CommandLineRunner {
 		SpringApplication.run(GrpcserverApplication.class, args);
 	}
 
-	private ClientBankService clientBankService;
+	private ClientResiliencyService clientResiliencyService;
 
-	public GrpcserverApplication(@Autowired ClientBankService clientBankService) {
-		this.clientBankService = clientBankService;
-	}
-
-	@Override
-	public void run(String... args) throws Exception {
-		TimeUnit.SECONDS.sleep(5);
-
-		// demoUnaryCall();
-		// demoServerStreamingCall();
-		// demoClientStreamingCall();
-		// demoBidirectionalStreamingCall();
+	public GrpcserverApplication(@Autowired ClientResiliencyService clientResiliencyService) {
+		this.clientResiliencyService = clientResiliencyService;
 	}
 
 	private void printExceptionStatus(String caller, Throwable e) {
@@ -60,91 +48,151 @@ public class GrpcserverApplication implements CommandLineRunner {
 		}
 	}
 
-	private void demoUnaryCall() {
+	@Override
+	public void run(String... args) throws Exception {
+		// demoUnaryResiliency();
+		// demoServerStreamingResiliency();
+		// demoClientStreamingResiliency();
+		demoBidirectionalStreamingResiliency();
+	}
+
+	private void demoUnaryResiliency() {
 		try {
-			var getCurrentBalanceResponse = clientBankService.callGetCurrentBalance("11111111xx");
-			log.info("getCurrentBalanceResponse success with amount {}", getCurrentBalanceResponse.getAmount());
+			// TODO: change the parameters to trigger different scenarios, e.g.:
+			// - set maxDelaySecond to less than timeout to get successful response
+			// - set maxDelaySecond to more than timeout to trigger deadline exceeded error
+			// - add non-zero value to statusCodes to trigger the corresponding error status
+
+			var minDelaySecond = 0;
+			var maxDelaySecond = 3;
+			var statusCodes = List.of(0);
+			var timeout = Duration.ofSeconds(5);
+
+			var request = ResiliencyRequest.newBuilder()
+					.setMinDelaySecond(minDelaySecond)
+					.setMaxDelaySecond(maxDelaySecond)
+					.addAllStatusCodes(statusCodes)
+					.build();
+
+			var res = clientResiliencyService.callUnaryResiliency(request, timeout);
+
+			log.info("unaryResiliency: {}", res.getDummyString());
 		} catch (StatusException | StatusRuntimeException e) {
-			printExceptionStatus("callGetCurrentBalance", e);
+			printExceptionStatus("unaryResiliency", e);
 		} catch (Exception e) {
-			log.error("callGetCurrentBalance catch other exception", e);
+			log.error("unaryResiliency catch exception: {}", e.getMessage(), e);
 		}
 	}
 
-	private void demoServerStreamingCall() {
+	private void demoServerStreamingResiliency() {
 		try {
-			clientBankService.callFetchExchangeRates("USD", "INVALID");
+			// TODO: change the parameters to trigger different scenarios, e.g.:
+			// - suppose both minDelaySecond and maxDelaySecond is 3s and the timeout is set to 16s;
+			//   we should receive at least 5 responses before the deadline exceeded error occurs
+			// - add non-zero value to statusCodes to trigger the corresponding error status returned by server
+			
+			var minDelaySecond = 3;
+			var maxDelaySecond = 3;
+			var statusCodes = List.of(0);
+			var timeout = Duration.ofSeconds(16);
+
+			var request = ResiliencyRequest.newBuilder()
+					.setMinDelaySecond(minDelaySecond)
+					.setMaxDelaySecond(maxDelaySecond)
+					.addAllStatusCodes(statusCodes)
+					.build();
+
+			clientResiliencyService.callServerStreamingResiliency(request, timeout);
 		} catch (StatusException | StatusRuntimeException e) {
-			printExceptionStatus("callFetchExchangeRates", e);
+			printExceptionStatus("serverStreamingResiliency", e);
 		} catch (Exception e) {
-			log.error("callFetchExchangeRates catch other exception", e);
+			log.error("serverStreamingResiliency catch exception: {}", e.getMessage(), e);
 		}
 	}
 
-	private void demoClientStreamingCall() {
+	private void demoClientStreamingResiliency() {
 		try {
-			var depositTransactionRequest = TransactionRequest.newBuilder()
-					.setAccountNumber("11111111")
-					.setType(TransactionType.TRANSACTION_TYPE_IN)
-					.setAmount(100.0)
-					.setNotes("Deposit")
+			// TODO: change the parameters to trigger different scenarios, e.g.:
+			// Since we have 3 requests, if we set minDelaySecond and maxDelaySecond to 4s, 
+			// the total processing time on server side would be around 12s.
+			// - set timeout to more than total processing time to get successful response, e.g. 20s
+			// - set timeout to less than total processing time to trigger deadline exceeded error, e.g. 7s
+			// - add non-zero value to statusCodes to trigger the corresponding error status returned by server
+
+			var minDelaySecond = 4;
+			var maxDelaySecond = 4;
+			var statusCodes = List.of(0);
+			var timeout = Duration.ofSeconds(20);
+
+			var request1 = ResiliencyRequest.newBuilder()
+					.setMinDelaySecond(minDelaySecond)
+					.setMaxDelaySecond(maxDelaySecond)
+					.addAllStatusCodes(statusCodes)
 					.build();
 
-			var accountNotFoundTransactionRequest = TransactionRequest.newBuilder()
-					.setAccountNumber("INVALID_ACCOUNT")
-					.setType(TransactionType.TRANSACTION_TYPE_IN)
-					.setAmount(50.0)
-					.setNotes("Deposit")
+			var request2 = ResiliencyRequest.newBuilder()
+					.setMinDelaySecond(minDelaySecond)
+					.setMaxDelaySecond(maxDelaySecond)
+					.addAllStatusCodes(statusCodes)
 					.build();
 
-			var insufficientFundTransactionRequest = TransactionRequest.newBuilder()
-					.setAccountNumber("11111111")
-					.setType(TransactionType.TRANSACTION_TYPE_OUT)
-					.setAmount(9000000)
-					.setNotes("Withdrawal")
+			var request3 = ResiliencyRequest.newBuilder()
+					.setMinDelaySecond(minDelaySecond)
+					.setMaxDelaySecond(maxDelaySecond)
+					.addAllStatusCodes(statusCodes)
 					.build();
 
-			var requests = List.of(
-					depositTransactionRequest,
-					accountNotFoundTransactionRequest,
-					insufficientFundTransactionRequest);
+			var requests = List.of(request1, request2, request3);
 
-			var response = clientBankService.callSummarizeTransactions(requests);
-			log.info("callSummarizeTransactions success: account={}, in={}, out={}, total={}",
-					response.getAccountNumber(), response.getSumAmountIn(),
-					response.getSumAmountOut(), response.getSumTotal());
+			var response = clientResiliencyService.callClientStreamingResiliency(requests, timeout);
+
+			log.info("clientStreamingResiliency: {}", response.getDummyString());
 		} catch (StatusException | StatusRuntimeException e) {
-			printExceptionStatus("callSummarizeTransactions", e);
+			printExceptionStatus("clientStreamingResiliency", e);
 		} catch (Exception e) {
-			log.error("callSummarizeTransactions catch other exception", e);
+			log.error("clientStreamingResiliency catch exception: {}", e.getMessage(), e);
 		}
 	}
 
-	private void demoBidirectionalStreamingCall() {
+	private void demoBidirectionalStreamingResiliency() {
 		try {
-			var transferFromInvalidSourceRequest = TransferRequest.newBuilder()
-					.setFromAccountNumber("INVALID_SRC") 
-					.setToAccountNumber("22222222")
-					.setCurrency("USD")
-					.setAmount(3)
+			// TODO: change the parameters to trigger different scenarios, e.g.:
+			// Since we have 3 requests, if we set minDelaySecond and maxDelaySecond to 5s, 
+			// the total processing time on server side would be around 15s.
+			// - set timeout to more than total processing time to get successful response, e.g. 20s
+			// - set timeout to less than total processing time to trigger deadline exceeded error, e.g. 7s
+			// - add non-zero value to statusCodes to trigger the corresponding error status returned by server
+
+			var minDelaySecond = 5;
+			var maxDelaySecond = 5;
+			var statusCodes = List.of(0);
+			var timeout = Duration.ofSeconds(20);
+
+			var request1 = ResiliencyRequest.newBuilder()
+					.setMinDelaySecond(minDelaySecond)
+					.setMaxDelaySecond(maxDelaySecond)
+					.addAllStatusCodes(statusCodes)
 					.build();
 
-			var transferToInvalidDestinationRequest = TransferRequest.newBuilder()
-					.setFromAccountNumber("11111111")
-					.setToAccountNumber("INVALID_DEST")
-					.setCurrency("USD")
-					.setAmount(3)
+			var request2 = ResiliencyRequest.newBuilder()
+					.setMinDelaySecond(minDelaySecond)
+					.setMaxDelaySecond(maxDelaySecond)
+					.addAllStatusCodes(statusCodes)
 					.build();
 
-			var requests = List.of(
-					transferFromInvalidSourceRequest,
-					transferToInvalidDestinationRequest);
+			var request3 = ResiliencyRequest.newBuilder()
+					.setMinDelaySecond(minDelaySecond)
+					.setMaxDelaySecond(maxDelaySecond)
+					.addAllStatusCodes(statusCodes)
+					.build();
 
-			clientBankService.callTransferMultiple(requests);
+			var requests = List.of(request1, request2, request3);
+
+			clientResiliencyService.callBidirectionalStreamingResiliency(requests, timeout);
 		} catch (StatusException | StatusRuntimeException e) {
-			printExceptionStatus("callTransferMultiple", e);
+			printExceptionStatus("bidirectionalResiliency", e);
 		} catch (Exception e) {
-			log.error("callTransferMultiple catch other exception", e);
+			log.error("bidirectionalResiliency catch exception: {}", e.getMessage(), e);
 		}
 	}
 
