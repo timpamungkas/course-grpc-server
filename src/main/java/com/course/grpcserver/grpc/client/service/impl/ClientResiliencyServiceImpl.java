@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import com.course.central.proto.resiliency.ResiliencyMessage.ResiliencyRequest;
@@ -14,6 +15,8 @@ import com.course.central.proto.resiliency.ResiliencyMessage.ResiliencyResponse;
 import com.course.central.proto.resiliency.ResiliencyServiceGrpc;
 import com.course.grpcserver.grpc.client.service.ClientResiliencyService;
 
+import io.grpc.StatusException;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,8 +34,11 @@ public class ClientResiliencyServiceImpl implements ClientResiliencyService {
         this.resiliencyServiceAsyncStub = resiliencyServiceAsyncStub;
     }
 
+    @Retryable(includes = { StatusException.class,
+            StatusRuntimeException.class }, maxRetries = 5, delayString = "3s", maxDelayString = "10s", multiplier = 2)
     @Override
     public ResiliencyResponse callUnaryResiliency(ResiliencyRequest request, Duration timeout) throws Exception {
+        log.info("[callUnaryResiliency] called");
         var stub = resiliencyServiceBlockingStub;
 
         if (timeout != null) {
@@ -42,8 +48,11 @@ public class ClientResiliencyServiceImpl implements ClientResiliencyService {
         return stub.unaryResiliency(request);
     }
 
+    @Retryable(includes = { StatusException.class,
+            StatusRuntimeException.class }, maxRetries = 5, delayString = "3s", maxDelayString = "10s", multiplier = 2)
     @Override
     public void callServerStreamingResiliency(ResiliencyRequest request, Duration timeout) throws Exception {
+        log.info("[callServerStreamingResiliency] called");
         var stub = resiliencyServiceBlockingStub;
 
         if (timeout != null) {
@@ -58,9 +67,12 @@ public class ClientResiliencyServiceImpl implements ClientResiliencyService {
         }
     }
 
+    @Retryable(includes = { StatusException.class,
+            StatusRuntimeException.class }, maxRetries = 5, delayString = "3s", maxDelayString = "10s", multiplier = 2)
     @Override
     public ResiliencyResponse callClientStreamingResiliency(List<ResiliencyRequest> requests, Duration timeout)
             throws Exception {
+        log.info("[callClientStreamingResiliency] called");
         var latch = new CountDownLatch(1);
         var responseHolder = new AtomicReference<ResiliencyResponse>();
         var errorHolder = new AtomicReference<Throwable>();
@@ -119,9 +131,12 @@ public class ClientResiliencyServiceImpl implements ClientResiliencyService {
         return response;
     }
 
+    @Retryable(includes = { StatusException.class,
+            StatusRuntimeException.class }, maxRetries = 5, delayString = "3s", maxDelayString = "10s", multiplier = 2)
     @Override
     public void callBidirectionalStreamingResiliency(List<ResiliencyRequest> requests, Duration timeout)
             throws Exception {
+        log.info("[callBidirectionalStreamingResiliency] called");
         var latch = new CountDownLatch(1);
         var errorHolder = new AtomicReference<Throwable>();
 
