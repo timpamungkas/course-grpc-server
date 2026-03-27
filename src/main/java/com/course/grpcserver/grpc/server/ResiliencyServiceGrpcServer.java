@@ -8,7 +8,6 @@ import org.springframework.grpc.server.service.GrpcService;
 import com.course.central.proto.resiliency.ResiliencyMessage.ResiliencyRequest;
 import com.course.central.proto.resiliency.ResiliencyMessage.ResiliencyResponse;
 import com.course.central.proto.resiliency.ResiliencyServiceGrpc;
-import com.course.grpcserver.grpc.interceptor.ModifyResponseInterceptor;
 import com.course.grpcserver.service.ResiliencyService;
 
 import io.grpc.Context;
@@ -17,7 +16,7 @@ import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@GrpcService(interceptors = { ModifyResponseInterceptor.class })
+@GrpcService
 public class ResiliencyServiceGrpcServer extends ResiliencyServiceGrpc.ResiliencyServiceImplBase {
 
     private ResiliencyService resiliencyService;

@@ -10,13 +10,11 @@ import org.springframework.grpc.server.service.GrpcService;
 import com.course.central.proto.hello.Hello.SayHelloRequest;
 import com.course.central.proto.hello.Hello.SayHelloResponse;
 import com.course.central.proto.hello.HelloServiceGrpc;
-import com.course.grpcserver.grpc.interceptor.ModifyRequestInterceptor;
-import com.course.grpcserver.grpc.interceptor.ModifyResponseInterceptor;
 import com.course.grpcserver.service.HelloService;
 
 import io.grpc.stub.StreamObserver;
 
-@GrpcService(interceptors = { ModifyRequestInterceptor.class, ModifyResponseInterceptor.class })
+@GrpcService
 public class HelloServiceGrpcServer extends HelloServiceGrpc.HelloServiceImplBase {
 
     private HelloService helloService;

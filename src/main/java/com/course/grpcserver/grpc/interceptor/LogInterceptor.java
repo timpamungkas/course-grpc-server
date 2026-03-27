@@ -12,7 +12,7 @@ import io.grpc.ServerInterceptor;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
-@GlobalServerInterceptor
+// @GlobalServerInterceptor
 @Order(100)
 @Slf4j
 public class LogInterceptor implements ServerInterceptor {
