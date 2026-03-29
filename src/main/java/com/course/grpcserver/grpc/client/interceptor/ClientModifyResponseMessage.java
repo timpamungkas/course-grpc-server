@@ -17,7 +17,7 @@ import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 
 @Component
-@GlobalClientInterceptor
+// @GlobalClientInterceptor
 @Order(300)
 public class ClientModifyResponseMessage implements ClientInterceptor {
 

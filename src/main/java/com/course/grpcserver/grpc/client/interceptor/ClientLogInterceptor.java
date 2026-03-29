@@ -12,7 +12,7 @@ import io.grpc.MethodDescriptor;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
-@GlobalClientInterceptor
+// @GlobalClientInterceptor
 @Order(100)
 @Slf4j
 public class ClientLogInterceptor implements ClientInterceptor {

@@ -3,6 +3,7 @@ package com.course.grpcserver.grpc.client.service.impl;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -13,10 +14,14 @@ import org.springframework.stereotype.Service;
 import com.course.central.proto.resiliency.ResiliencyMessage.ResiliencyRequest;
 import com.course.central.proto.resiliency.ResiliencyMessage.ResiliencyResponse;
 import com.course.central.proto.resiliency.ResiliencyServiceGrpc;
+import com.course.grpcserver.grpc.client.constant.ClientGrpcKeyConstants;
 import com.course.grpcserver.grpc.client.service.ClientResiliencyService;
 
+import io.grpc.ClientInterceptor;
+import io.grpc.Metadata;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
+import io.grpc.stub.MetadataUtils;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,7 +50,9 @@ public class ClientResiliencyServiceImpl implements ClientResiliencyService {
             stub = stub.withDeadlineAfter(timeout);
         }
 
-        return stub.unaryResiliency(request);
+        var clientInterceptor = createPerRequestClientInterceptor("callUnaryResiliency");
+
+        return stub.withInterceptors(clientInterceptor).unaryResiliency(request);
     }
 
     @Retryable(includes = { StatusException.class,
@@ -59,7 +66,9 @@ public class ClientResiliencyServiceImpl implements ClientResiliencyService {
             stub = stub.withDeadlineAfter(timeout);
         }
 
-        var responseStream = stub.serverStreamingResiliency(request);
+        var clientInterceptor = createPerRequestClientInterceptor("callServerStreamingResiliency");
+
+        var responseStream = stub.withInterceptors(clientInterceptor).serverStreamingResiliency(request);
 
         while (responseStream.hasNext()) {
             var response = responseStream.read();
@@ -83,7 +92,9 @@ public class ClientResiliencyServiceImpl implements ClientResiliencyService {
             stub = stub.withDeadlineAfter(timeout);
         }
 
-        var requestObserver = stub.clientStreamingResiliency(
+        var clientInterceptor = createPerRequestClientInterceptor("callClientStreamingResiliency");
+
+        var requestObserver = stub.withInterceptors(clientInterceptor).clientStreamingResiliency(
                 new StreamObserver<>() {
 
                     @Override
@@ -110,8 +121,6 @@ public class ClientResiliencyServiceImpl implements ClientResiliencyService {
         requestObserver.onCompleted();
 
         var latchAwaitTime = timeout == null ? Duration.ofMinutes(2) : timeout.plusSeconds(3);
-        latch.await(latchAwaitTime.toSeconds(), TimeUnit.SECONDS);
-
         boolean completed = latch.await(latchAwaitTime.toSeconds(), TimeUnit.SECONDS);
 
         var error = errorHolder.get();
@@ -146,7 +155,9 @@ public class ClientResiliencyServiceImpl implements ClientResiliencyService {
             stub = stub.withDeadlineAfter(timeout);
         }
 
-        var requestObserver = stub.bidirectionalResiliency(
+        var clientInterceptor = createPerRequestClientInterceptor("callBidirectionalStreamingResiliency");
+
+        var requestObserver = stub.withInterceptors(clientInterceptor).bidirectionalResiliency(
                 new StreamObserver<>() {
 
                     @Override
@@ -187,6 +198,13 @@ public class ClientResiliencyServiceImpl implements ClientResiliencyService {
         if (!completed) {
             throw new RuntimeException("Timed out waiting for bidirectional streaming response");
         }
+    }
+
+    private ClientInterceptor createPerRequestClientInterceptor(String methodName) {
+        var metadata = new Metadata();
+        metadata.put(ClientGrpcKeyConstants.METADATA_KEY_PER_REQUEST,
+                methodName + "-" + ThreadLocalRandom.current().nextInt(1000));
+        return MetadataUtils.newAttachHeadersInterceptor(metadata);
     }
 
 }
