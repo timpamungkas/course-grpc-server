@@ -21,14 +21,10 @@ spring:
   h2:
     console:
       enabled: true     
-
-# Armeria HTTP server — exposes gRPC services as REST/JSON
-# Unary methods are reachable via:
-#   POST http://localhost:8080/<package>.<Service>/<Method>
-#   Content-Type: application/json
+      
 armeria:
   ports:
-    - port: 8080
+    - port: 8888
       protocols:
         - HTTP
 
