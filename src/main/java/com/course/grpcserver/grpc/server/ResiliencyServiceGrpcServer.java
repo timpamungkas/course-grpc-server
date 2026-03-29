@@ -1,5 +1,7 @@
 package com.course.grpcserver.grpc.server;
 
+import java.time.Instant;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,15 +10,18 @@ import org.springframework.grpc.server.service.GrpcService;
 import com.course.central.proto.resiliency.ResiliencyMessage.ResiliencyRequest;
 import com.course.central.proto.resiliency.ResiliencyMessage.ResiliencyResponse;
 import com.course.central.proto.resiliency.ResiliencyServiceGrpc;
+import com.course.grpcserver.grpc.constant.GrpcKeyConstants;
+import com.course.grpcserver.grpc.interceptor.MetadataInterceptor;
 import com.course.grpcserver.service.ResiliencyService;
 
 import io.grpc.Context;
+import io.grpc.Metadata;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@GrpcService
+@GrpcService(interceptors = { MetadataInterceptor.class })
 public class ResiliencyServiceGrpcServer extends ResiliencyServiceGrpc.ResiliencyServiceImplBase {
 
     private ResiliencyService resiliencyService;
@@ -27,6 +32,8 @@ public class ResiliencyServiceGrpcServer extends ResiliencyServiceGrpc.Resilienc
 
     @Override
     public void unaryResiliency(ResiliencyRequest request, StreamObserver<ResiliencyResponse> responseObserver) {
+        logRequestMetadata();
+
         var result = resiliencyService.generateResiliencyResponse(
                 request.getMinDelaySecond(), request.getMaxDelaySecond(), request.getStatusCodesList());
 
@@ -42,6 +49,8 @@ public class ResiliencyServiceGrpcServer extends ResiliencyServiceGrpc.Resilienc
                 .setDummyString(result.getDummyString())
                 .build();
 
+        attachResponseMetadata();
+
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
@@ -49,6 +58,8 @@ public class ResiliencyServiceGrpcServer extends ResiliencyServiceGrpc.Resilienc
     @Override
     public void serverStreamingResiliency(ResiliencyRequest request,
             StreamObserver<ResiliencyResponse> responseObserver) {
+        logRequestMetadata();
+
         while (!Context.current().isCancelled()) {
             var result = resiliencyService.generateResiliencyResponse(
                     request.getMinDelaySecond(), request.getMaxDelaySecond(), request.getStatusCodesList());
@@ -67,12 +78,16 @@ public class ResiliencyServiceGrpcServer extends ResiliencyServiceGrpc.Resilienc
             responseObserver.onNext(response);
         }
 
+        attachResponseMetadata();
+
         log.info("Client cancelled request");
     }
 
     @Override
     public StreamObserver<ResiliencyRequest> clientStreamingResiliency(
             StreamObserver<ResiliencyResponse> responseObserver) {
+        logRequestMetadata();
+
         return new StreamObserver<>() {
 
             private final AtomicInteger count = new AtomicInteger(0);
@@ -100,6 +115,8 @@ public class ResiliencyServiceGrpcServer extends ResiliencyServiceGrpc.Resilienc
 
             @Override
             public void onCompleted() {
+                attachResponseMetadata();
+
                 responseObserver.onNext(ResiliencyResponse.newBuilder()
                         .setDummyString("Received " + count.get() + " requests from client")
                         .build());
@@ -111,6 +128,10 @@ public class ResiliencyServiceGrpcServer extends ResiliencyServiceGrpc.Resilienc
     @Override
     public StreamObserver<ResiliencyRequest> bidirectionalResiliency(
             StreamObserver<ResiliencyResponse> responseObserver) {
+        logRequestMetadata();
+
+        attachResponseMetadata();
+
         return new StreamObserver<>() {
 
             @Override
@@ -142,6 +163,31 @@ public class ResiliencyServiceGrpcServer extends ResiliencyServiceGrpc.Resilienc
                 responseObserver.onCompleted();
             }
         };
+    }
+
+    private void logRequestMetadata() {
+        var requestMetadata = GrpcKeyConstants.CONTEXT_KEY_REQUEST_METADATA.get();
+        if (requestMetadata == null || requestMetadata.keys().isEmpty()) {
+            log.info("[ResiliencyService] No request metadata found");
+            return;
+        }
+
+        log.info("[ResiliencyService] Request metadata:");
+        requestMetadata.keys().forEach(key -> {
+            var value = requestMetadata.get(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER));
+            log.info("  - {} : {}", key, value);
+        });
+    }
+
+    private void attachResponseMetadata() {
+        var responseMetadata = GrpcKeyConstants.CONTEXT_KEY_RESPONSE_METADATA.get();
+
+        if (responseMetadata != null) {
+            responseMetadata.put(GrpcKeyConstants.METADATA_KEY_SERVER_VERSION, "1.0.0");
+            responseMetadata.put(GrpcKeyConstants.METADATA_KEY_SERVER_TRACE_ID, UUID.randomUUID().toString());
+            responseMetadata.put(GrpcKeyConstants.METADATA_KEY_SERVER_TIMESTAMP,
+                    Long.toString(Instant.now().toEpochMilli()));
+        }
     }
 
 }
