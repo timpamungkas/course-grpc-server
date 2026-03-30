@@ -16,9 +16,9 @@ public class ArmeriaConfig {
 
     @Bean
     public ArmeriaServerConfigurator armeriaServerConfigurator(
-            @Autowired HelloServiceGrpcServer helloServiceGrpcServer,
-            @Autowired BankServiceGrpcServer bankServiceGrpcServer,
-            @Autowired ResiliencyServiceGrpcServer resiliencyServiceGrpcServer) {
+            HelloServiceGrpcServer helloServiceGrpcServer,
+            BankServiceGrpcServer bankServiceGrpcServer,
+            ResiliencyServiceGrpcServer resiliencyServiceGrpcServer) {
         return builder -> {
             var grpcService = GrpcService.builder()
                     .addService("/hello", helloServiceGrpcServer)

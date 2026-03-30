@@ -35,10 +35,10 @@ public class BankServiceImpl implements BankService {
     private BankTransactionRepository bankTransactionRepository;
     private BankTransferRepository bankTransferRepository;
 
-    public BankServiceImpl(@Autowired BankAccountRepository bankAccountRepository,
-            @Autowired BankExchangeRateRepository bankExchangeRateRepository,
-            @Autowired BankTransactionRepository bankTransactionRepository,
-            @Autowired BankTransferRepository bankTransferRepository) {
+    public BankServiceImpl(BankAccountRepository bankAccountRepository,
+            BankExchangeRateRepository bankExchangeRateRepository,
+            BankTransactionRepository bankTransactionRepository,
+            BankTransferRepository bankTransferRepository) {
         this.bankAccountRepository = bankAccountRepository;
         this.bankExchangeRateRepository = bankExchangeRateRepository;
         this.bankTransactionRepository = bankTransactionRepository;

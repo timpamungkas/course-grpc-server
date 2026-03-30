@@ -33,8 +33,8 @@ public class ClientResiliencyServiceImpl implements ClientResiliencyService {
     private ResiliencyServiceGrpc.ResiliencyServiceStub resiliencyServiceAsyncStub;
 
     public ClientResiliencyServiceImpl(
-            @Autowired ResiliencyServiceGrpc.ResiliencyServiceBlockingV2Stub resiliencyServiceBlockingStub,
-            @Autowired ResiliencyServiceGrpc.ResiliencyServiceStub resiliencyServiceAsyncStub) {
+            ResiliencyServiceGrpc.ResiliencyServiceBlockingV2Stub resiliencyServiceBlockingStub,
+            ResiliencyServiceGrpc.ResiliencyServiceStub resiliencyServiceAsyncStub) {
         this.resiliencyServiceBlockingStub = resiliencyServiceBlockingStub;
         this.resiliencyServiceAsyncStub = resiliencyServiceAsyncStub;
     }

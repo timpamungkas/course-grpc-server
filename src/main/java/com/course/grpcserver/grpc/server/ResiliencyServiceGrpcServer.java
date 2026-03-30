@@ -26,7 +26,7 @@ public class ResiliencyServiceGrpcServer extends ResiliencyServiceGrpc.Resilienc
 
     private ResiliencyService resiliencyService;
 
-    public ResiliencyServiceGrpcServer(@Autowired ResiliencyService resiliencyService) {
+    public ResiliencyServiceGrpcServer(ResiliencyService resiliencyService) {
         this.resiliencyService = resiliencyService;
     }
 

@@ -24,8 +24,8 @@ public class ClientHelloServiceImpl implements ClientHelloService {
     private HelloServiceGrpc.HelloServiceStub helloServiceAsyncStub;
 
     public ClientHelloServiceImpl(
-            @Autowired HelloServiceGrpc.HelloServiceBlockingV2Stub helloServiceBlockingStub,
-            @Autowired HelloServiceGrpc.HelloServiceStub helloServiceAsyncStub) {
+            HelloServiceGrpc.HelloServiceBlockingV2Stub helloServiceBlockingStub,
+            HelloServiceGrpc.HelloServiceStub helloServiceAsyncStub) {
         this.helloServiceBlockingStub = helloServiceBlockingStub;
         this.helloServiceAsyncStub = helloServiceAsyncStub;
     }

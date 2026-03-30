@@ -43,8 +43,8 @@ public class GrpcserverApplication implements CommandLineRunner {
 	private ClientHelloService clientHelloService;
 	private ClientResiliencyService clientResiliencyService;
 
-	public GrpcserverApplication(@Autowired ClientHelloService clientHelloService,
-			@Autowired ClientResiliencyService clientResiliencyService) {
+	public GrpcserverApplication(ClientHelloService clientHelloService,
+			ClientResiliencyService clientResiliencyService) {
 		this.clientHelloService = clientHelloService;
 		this.clientResiliencyService = clientResiliencyService;
 	}

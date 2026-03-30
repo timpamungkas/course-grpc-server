@@ -29,8 +29,8 @@ public class ClientBankServiceImpl implements ClientBankService {
     private BankServiceGrpc.BankServiceStub bankServiceAsyncStub;
 
     public ClientBankServiceImpl(
-            @Autowired BankServiceGrpc.BankServiceBlockingV2Stub bankServiceBlockingStub,
-            @Autowired BankServiceGrpc.BankServiceStub bankServiceAsyncStub) {
+            BankServiceGrpc.BankServiceBlockingV2Stub bankServiceBlockingStub,
+            BankServiceGrpc.BankServiceStub bankServiceAsyncStub) {
         this.bankServiceBlockingStub = bankServiceBlockingStub;
         this.bankServiceAsyncStub = bankServiceAsyncStub;
     }

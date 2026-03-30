@@ -19,7 +19,7 @@ public class HelloServiceGrpcServer extends HelloServiceGrpc.HelloServiceImplBas
 
     private HelloService helloService;
 
-    public HelloServiceGrpcServer(@Autowired HelloService helloService) {
+    public HelloServiceGrpcServer(HelloService helloService) {
         this.helloService = helloService;
     }
 

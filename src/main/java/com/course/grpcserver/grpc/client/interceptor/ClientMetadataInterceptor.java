@@ -33,7 +33,6 @@ public class ClientMetadataInterceptor implements ClientInterceptor {
         return new ForwardingClientCall.SimpleForwardingClientCall<>(next.newCall(method, callOptions)) {
             @Override
             public void start(Listener<RespT> responseListener, Metadata headers) {
-                // Attach dynamic per-call request metadata (for all requests)
                 headers.put(ClientGrpcKeyConstants.METADATA_KEY_CLIENT_ID,
                         "my-resiliency-client-" + ThreadLocalRandom.current().nextInt(1000));
                 headers.put(ClientGrpcKeyConstants.METADATA_KEY_CORRELATION_ID, UUID.randomUUID().toString());

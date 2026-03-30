@@ -30,7 +30,7 @@ public class GrpcserverApplication implements CommandLineRunner {
 
 	private ClientResiliencyService clientResiliencyService;
 
-	public GrpcserverApplication(@Autowired ClientResiliencyService clientResiliencyService) {
+	public GrpcserverApplication(ClientResiliencyService clientResiliencyService) {
 		this.clientResiliencyService = clientResiliencyService;
 	}
 

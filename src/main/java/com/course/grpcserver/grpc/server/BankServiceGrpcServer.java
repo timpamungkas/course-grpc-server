@@ -53,7 +53,7 @@ public class BankServiceGrpcServer extends BankServiceGrpc.BankServiceImplBase {
 
     private BankService bankService;
 
-    public BankServiceGrpcServer(@Autowired BankService bankService) {
+    public BankServiceGrpcServer(BankService bankService) {
         this.bankService = bankService;
     }
 
