@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package resiliency.v1;
+
+import "google/api/annotations.proto";
+import "resiliency/v1/resiliency_message.proto";
+
+option java_package = "com.course.central.proto.resiliency";
+
+service ResiliencyService {
+  rpc UnaryResiliency(ResiliencyRequest) returns (ResiliencyResponse) {
+    option (google.api.http) = {
+      post: "/resiliency/v1/unary_resiliency"
+      body: "*"
+    };
+  }
+
+  rpc ServerStreamingResiliency(ResiliencyRequest) returns (stream ResiliencyResponse) {}
+  rpc ClientStreamingResiliency(stream ResiliencyRequest) returns (ResiliencyResponse) {}
+  rpc BidirectionalResiliency(stream ResiliencyRequest) returns (stream ResiliencyResponse) {}
+}

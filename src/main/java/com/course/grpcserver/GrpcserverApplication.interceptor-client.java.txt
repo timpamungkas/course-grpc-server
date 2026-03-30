@@ -1,0 +1,127 @@
+package com.course.grpcserver;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.resilience.annotation.EnableResilientMethods;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+import com.course.central.proto.resiliency.ResiliencyMessage.ResiliencyRequest;
+import com.course.grpcserver.grpc.client.service.ClientHelloService;
+import com.course.grpcserver.grpc.client.service.ClientResiliencyService;
+
+import lombok.extern.slf4j.Slf4j;
+
+@EnableResilientMethods
+@EnableScheduling
+@Slf4j
+@SpringBootApplication
+public class GrpcserverApplication implements CommandLineRunner {
+
+	public static void main(String[] args) {
+		SpringApplication.run(GrpcserverApplication.class, args);
+	}
+
+	@Override
+	public void run(String... args) throws Exception {
+		// TimeUnit.SECONDS.sleep(5);
+
+		// demoClientHelloUnary();
+		// demoClientHelloServerStreaming();
+		// demoClientHelloClientStreaming();
+		// demoClientHelloBidirectionalStreaming();
+		demoClientResiliencyUnary();
+		// demoClientResiliencyServerStreaming();
+		// demoClientResiliencyClientStreaming();
+		// demoClientResiliencyBidirectionalStreaming();
+	}
+
+	private ClientHelloService clientHelloService;
+	private ClientResiliencyService clientResiliencyService;
+
+	public GrpcserverApplication(ClientHelloService clientHelloService,
+			ClientResiliencyService clientResiliencyService) {
+		this.clientHelloService = clientHelloService;
+		this.clientResiliencyService = clientResiliencyService;
+	}
+
+	private void demoClientHelloUnary() throws Exception {
+		var response = clientHelloService.sayHello("Rabbit");
+
+		log.info("[demoHelloUnary] Response: {}", response);
+	}
+
+	private void demoClientHelloServerStreaming() throws Exception {
+		clientHelloService.sayServerStreamingHello("Fox");
+	}
+
+	private void demoClientHelloClientStreaming() throws Exception {
+		var names = List.of("Cat", "Dog", "Eagle");
+		var response = clientHelloService.sayClientStreamingHello(names);
+
+		log.info("[demoClientHelloClientStreaming] Response: {}", response);
+	}
+
+	private void demoClientHelloBidirectionalStreaming() throws Exception {
+		var names = List.of("Dolphin", "Octopus", "Whale");
+
+		clientHelloService.sayBidirectionalStreamingHello(names);
+	}
+
+	private void demoClientResiliencyUnary() throws Exception {
+		var status = List.of(0);
+		var request = ResiliencyRequest.newBuilder()
+				.setMinDelaySecond(0)
+				.setMaxDelaySecond(1)
+				.addAllStatusCodes(status)
+				.build();
+
+		var response = clientResiliencyService.callUnaryResiliency(request, null);
+
+		log.info("[demoClientResiliencyUnary] Response: {}", response);
+	}
+
+	private void demoClientResiliencyServerStreaming() throws Exception {
+		var status = List.of(0);
+		var request = ResiliencyRequest.newBuilder()
+				.setMinDelaySecond(0)
+				.setMaxDelaySecond(1)
+				.addAllStatusCodes(status)
+				.build();
+
+		clientResiliencyService.callServerStreamingResiliency(request, null);
+	}
+
+	private void demoClientResiliencyClientStreaming() throws Exception {
+		var status = List.of(0);
+		var request1 = ResiliencyRequest.newBuilder().setMinDelaySecond(0).setMaxDelaySecond(1)
+				.addAllStatusCodes(status).build();
+		var request2 = ResiliencyRequest.newBuilder().setMinDelaySecond(0).setMaxDelaySecond(1)
+				.addAllStatusCodes(status).build();
+		var request3 = ResiliencyRequest.newBuilder().setMinDelaySecond(0).setMaxDelaySecond(1)
+				.addAllStatusCodes(status).build();
+		var requests = List.of(request1, request2, request3);
+
+		var response = clientResiliencyService.callClientStreamingResiliency(requests, null);
+
+		log.info("[demoClientResiliencyClientStreaming] Response: {}", response);
+	}
+
+	private void demoClientResiliencyBidirectionalStreaming() throws Exception {
+		var status = List.of(0);
+		var request1 = ResiliencyRequest.newBuilder().setMinDelaySecond(0).setMaxDelaySecond(1)
+				.addAllStatusCodes(status).build();
+		var request2 = ResiliencyRequest.newBuilder().setMinDelaySecond(0).setMaxDelaySecond(1)
+				.addAllStatusCodes(status).build();
+		var request3 = ResiliencyRequest.newBuilder().setMinDelaySecond(0).setMaxDelaySecond(1)
+				.addAllStatusCodes(status).build();
+		var requests = List.of(request1, request2, request3);
+
+		clientResiliencyService.callBidirectionalStreamingResiliency(requests, null);
+	}
+
+}

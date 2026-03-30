@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.grpc.server.service.GrpcService;
 
 import com.course.central.proto.hello.Hello.SayHelloRequest;
 import com.course.central.proto.hello.Hello.SayHelloResponse;
@@ -14,12 +14,12 @@ import com.course.grpcserver.service.HelloService;
 
 import io.grpc.stub.StreamObserver;
 
-@Service
+@GrpcService
 public class HelloServiceGrpcServer extends HelloServiceGrpc.HelloServiceImplBase {
 
     private HelloService helloService;
 
-    public HelloServiceGrpcServer(@Autowired HelloService helloService) {
+    public HelloServiceGrpcServer(HelloService helloService) {
         this.helloService = helloService;
     }
 

@@ -32,7 +32,7 @@
 		<grpc.version>1.77.1</grpc.version>
 		<protobuf-java.version>4.33.4</protobuf-java.version>
 		<spring-grpc.version>1.0.2</spring-grpc.version>
-		<armeria.version>1.36.0</armeria.version>
+		<armeria.version>1.37.0</armeria.version>
 	</properties>
 	<dependencies>
 		<dependency>

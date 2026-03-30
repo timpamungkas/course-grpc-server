@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package resiliency.v1;
+
+option java_package = "com.course.central.proto.resiliency";
+
+message ResiliencyRequest {
+  uint32 min_delay_second = 1 [json_name = "min_delay_second"];
+  uint32 max_delay_second = 2 [json_name = "max_delay_second"];
+  repeated uint32 status_codes = 3 [json_name = "status_codes"];
+}
+
+message ResiliencyResponse {
+  string dummy_string = 1 [json_name = "dummy_string"];
+}
+

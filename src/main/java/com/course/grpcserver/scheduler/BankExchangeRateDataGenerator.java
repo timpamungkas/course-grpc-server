@@ -14,7 +14,7 @@ public class BankExchangeRateDataGenerator {
 
     private BankService bankService;
 
-    public BankExchangeRateDataGenerator(@Autowired BankService bankService) {
+    public BankExchangeRateDataGenerator(BankService bankService) {
         this.bankService = bankService;
     }
 
